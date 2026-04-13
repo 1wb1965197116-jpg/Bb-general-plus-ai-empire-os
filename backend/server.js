@@ -6,16 +6,12 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+app.use("/api/ai", require("./routes/ai"));
+
 app.get("/", (req, res) => {
-  res.send("AI Empire OS Running 🚀");
+  res.send("AI Demo Running 🚀");
 });
 
-// Routes
-app.use("/api/auth", require("./routes/auth"));
-app.use("/api/ai", require("./routes/ai"));
-app.use("/api/deploy", require("./routes/deploy"));
-app.use("/api/stripe", require("./routes/stripe"));
-app.use("/api/analytics", require("./routes/analytics"));
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log("Server running on", PORT));
+app.listen(process.env.PORT || 3000, () => {
+  console.log("Server running");
+});
