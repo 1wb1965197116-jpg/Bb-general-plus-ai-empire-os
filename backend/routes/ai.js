@@ -1,15 +1,9 @@
 const router = require("express").Router();
 
-// =====================
-// 🧪 TEST ROUTE
-// =====================
 router.get("/", (req, res) => {
-  res.json({ message: "AI Demo Route Working ✅" });
+  res.json({ message: "AI Route OK ✅" });
 });
 
-// =====================
-// 🤖 AI GENERATE (FINAL)
-// =====================
 router.post("/generate", async (req, res) => {
   const { idea } = req.body;
   const apiKey = process.env.OPENAI_API_KEY;
@@ -17,7 +11,10 @@ router.post("/generate", async (req, res) => {
   if (!apiKey) {
     return res.json({
       files: [
-        { path: "index.html", content: "<h1>❌ Missing API Key</h1>" }
+        {
+          path: "index.html",
+          content: "<h1>Missing API Key</h1>"
+        }
       ]
     });
   }
@@ -30,15 +27,15 @@ router.post("/generate", async (req, res) => {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "gpt-4o",
+        model: "gpt-4o-mini",
         messages: [
           {
             role: "system",
-            content: "Return ONLY valid JSON. No emojis."
+            content: "Return ONLY valid JSON. No emojis. No formatting."
           },
           {
             role: "user",
-            content: `Return JSON:
+            content: `Return JSON ONLY:
 [
  { "path": "index.html", "content": "<h1>${idea}</h1>" }
 ]`
@@ -51,31 +48,35 @@ router.post("/generate", async (req, res) => {
 
     let raw = data?.choices?.[0]?.message?.content || "";
 
-    // ✅ SAFE CLEAN
-    raw = Buffer.from(raw, "utf-8").toString("utf-8");
-    raw = raw.replace(/[^\x00-\x7F]/g, "");
+    console.log("RAW AI:", raw);
 
     let files;
 
     try {
       files = JSON.parse(raw);
-    } catch {
+    } catch (e) {
       files = [
         {
           path: "index.html",
-          content: raw || "<h1>Fallback Output</h1>"
+          content: raw || "<h1>AI Fallback</h1>"
         }
       ];
     }
 
-    res.json({ files });
+    // 🚨 IMPORTANT: FORCE STRING SAFETY (NO BUFFER)
+    files = files.map(f => ({
+      path: String(f.path || "index.html"),
+      content: String(f.content || "")
+    }));
+
+    return res.json({ files });
 
   } catch (err) {
-    res.json({
+    return res.json({
       files: [
         {
           path: "index.html",
-          content: "ERROR: " + err.message
+          content: "ERROR: " + String(err.message)
         }
       ]
     });
