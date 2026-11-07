@@ -2,5 +2,5 @@ services:
   - type: web
     name: ai-empire-backend
     env: node
-    buildCommand: npm install
+    buildCommand: npm install --prefix backend
     startCommand: node backend/server.js
